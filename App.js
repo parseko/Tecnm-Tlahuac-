@@ -4,66 +4,81 @@ import LoginForm from './screens/LoginForm';
 import firebase from './databases/firebase';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import Materias from './screens/Materias'
+import Materias from './screens/Materias';
 import SubjectsSpecificacion from './screens/SubjectsSpecificacion';
+import { useState, useEffect } from 'react';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Button } from 'react-native';
+import { createStore } from 'redux';
+import { Provider } from 'react-redux';
+import store from './Initial/store';
+import Schedule from './screens/Schedule';
 
 const Stack = createStackNavigator();
+// const Tab = createBottomTabNavigator();
 
-class App extends React.Component {
-  state = {
-    loggedin: null
-  }
+const App = () => {
+  const [loggedin, setLoggedin] = useState(null);
 
-  componentDidMount() {
-
-    firebase.auth.onAuthStateChanged(user => {
+  useEffect(() => {
+    firebase.auth.onAuthStateChanged((user) => {
       if (user) {
-        this.setState({
-          loggedin: true
-        })
+        setLoggedin(true);
       } else {
-        this.setState({
-          loggedin: false
-        })
+        setLoggedin(false);
       }
-    })
-  }
+    });
+  }, []);
 
-  // renderContent = () => {
-  //   switch (this.state.loggedin) {
-  //     case "SIGN_IN":
-  //       return true
-  //     case "SIGN_UP":
-  //       return false
-  //   }
-  // }
-  render() {
-    return (
+  return (
+    <Provider store={store}>
       <NavigationContainer>
-        <Stack.Navigator screenOptions ={{headerStyle:{ backgroundColor:"#00b268"}}}>
-          {this.state.loggedin == false ? (
-            <Stack.Screen name="login" component={LoginForm} options={{headerShown: false}}/>
+        <Stack.Navigator
+          screenOptions={{ headerStyle: { backgroundColor: '#00b268' } }}>
+          {loggedin == false ? (
+            <Stack.Screen
+              header
+              name='login'
+              component={LoginForm}
+              options={{ headerShown: false }}
+            />
           ) : (
             <>
-              <Stack.Screen name="materias" component={Materias} />
-              <Stack.Screen name="especificaciones" component={SubjectsSpecificacion} />
+              <Stack.Screen
+                name='materias'
+                component={Materias}
+                options={{
+                  headerRight: () => (
+                    <Button
+                      color='#000'
+                      onPress={() => firebase.auth.signOut()}
+                      title='Logout'
+                    />
+                  ),
+                }}
+              />
+              <Stack.Screen
+                name='Grupos'
+                component={SubjectsSpecificacion}
+                // options={{
+                //   headerRight: () => (
+
+                //   ),
+                // }}
+              />
+              <Stack.Screen
+                name='Materias Seleccionadas'
+                component={Schedule}
+              />
             </>
           )}
         </Stack.Navigator>
       </NavigationContainer>
-    );
-  }
-}
-
-
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+    </Provider>
+  );
+};
+// const styles = StyleSheet.create({
+//   buttonLogout: {},
+// });
 
 export default App;
